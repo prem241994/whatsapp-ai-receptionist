@@ -3,6 +3,9 @@ import { PrismaClient } from '@prisma/client';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 
 const prisma = new PrismaClient();
+const productionCookies =
+  process.env.NODE_ENV === 'production' ||
+  process.env.BETTER_AUTH_URL?.startsWith('https://') === true;
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
@@ -11,8 +14,8 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true },
   advanced: {
     defaultCookieAttributes: {
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      sameSite: productionCookies ? 'none' : 'lax',
+      secure: productionCookies,
     },
   },
   trustedOrigins: (process.env.AUTH_TRUSTED_ORIGINS ?? 'http://localhost:3000')
