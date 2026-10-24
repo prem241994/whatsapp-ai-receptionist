@@ -20,6 +20,10 @@ services:
         generateValue: true
       - key: INTERNAL_WORKER_SECRET
         generateValue: true
+      - key: EMBEDDED_WORKER_ENABLED
+        value: true
+      - key: WORKER_INTERVAL_MS
+        value: 30000
       - key: META_ACCESS_TOKEN
         sync: false
       - key: META_APP_SECRET
@@ -28,25 +32,3 @@ services:
         sync: false
       - key: META_PHONE_NUMBER_ID
         sync: false
-
-  - type: worker
-    name: whatsapp-receptionist-worker
-    runtime: node
-    plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @whatsapp-receptionist/worker build
-    startCommand: node apps/worker/dist/worker.js
-    envVars:
-      - key: NODE_VERSION
-        value: 22
-      - key: API_BASE_URL
-        fromService:
-          name: whatsapp-receptionist-api
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
-      - key: INTERNAL_WORKER_SECRET
-        fromService:
-          name: whatsapp-receptionist-api
-          type: web
-          envVarKey: INTERNAL_WORKER_SECRET
-      - key: WORKER_INTERVAL_MS
-        value: 30000

@@ -1,10 +1,10 @@
 # Deployment Runbook
 
-This application has three runtime processes and one database:
+This application has two hosted runtime processes and one database:
 
 - `web`: Next.js owner dashboard
 - `api`: Fastify API, authentication, webhook, and internal processing endpoints
-- `worker`: scheduled reminders and outbound queue delivery
+- embedded scheduler: scheduled reminders and outbound queue delivery inside the API
 - PostgreSQL: durable application data
 
 ## Free-tier pilot layout
@@ -48,7 +48,7 @@ WORKER_INTERVAL_MS=30000
 2. Deploy the API and confirm `/health/live` returns `200`.
 3. Confirm `/health/ready` returns `200` and the protected production-readiness endpoint reports `ready: true`.
 4. Deploy the web app with its API base URL and Better Auth URL.
-5. Deploy one worker instance using the same API URL and `INTERNAL_WORKER_SECRET`.
+5. Confirm the API's embedded scheduler is enabled with `EMBEDDED_WORKER_ENABLED=true` and `WORKER_INTERVAL_MS`.
 6. Register the Meta webhook URL as `https://api.example.com/webhooks/meta` and configure the verify token.
 7. Send a test inbound message and confirm the webhook event, conversation, outbound queue, and delivery status.
 
@@ -56,12 +56,12 @@ WORKER_INTERVAL_MS=30000
 
 1. Create a Render Blueprint from this repository and select `render.yaml`.
 2. Enter the Neon `DATABASE_URL`, Better Auth URL, and Meta values when Render asks for `sync: false` variables.
-3. Render automatically supplies the API's HTTPS URL and shares the generated `INTERNAL_WORKER_SECRET` with the worker through the Blueprint.
-4. Confirm both services pass their health/start checks before registering the Meta webhook.
+3. Render automatically supplies the API's HTTPS URL. The API runs the reminder and outbound scheduler when `EMBEDDED_WORKER_ENABLED=true`.
+4. Confirm the API passes its health/start checks before registering the Meta webhook.
 
-The Render worker start command uses the compiled worker entry point
-`apps/worker/dist/worker.js`. The API start command uses
-`apps/api/dist/src/server.js`.
+The API start command uses `apps/api/dist/src/server.js`. The standalone worker
+package remains available for non-Render deployments, but is not provisioned by
+the free Render Blueprint.
 
 ## Vercel web deployment
 
