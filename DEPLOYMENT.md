@@ -56,7 +56,7 @@ WORKER_INTERVAL_MS=30000
 
 1. Create a Render Blueprint from this repository and select `render.yaml`.
 2. Enter the Neon `DATABASE_URL`, Better Auth URL, and Meta values when Render asks for `sync: false` variables.
-3. Set the worker `API_BASE_URL` to the HTTPS URL of the API and copy the generated `INTERNAL_WORKER_SECRET` into the worker service's matching environment variable.
+3. Render automatically supplies the API's HTTPS URL and shares the generated `INTERNAL_WORKER_SECRET` with the worker through the Blueprint.
 4. Confirm both services pass their health/start checks before registering the Meta webhook.
 
 The Render worker start command uses the compiled worker entry point

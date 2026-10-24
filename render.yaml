@@ -12,7 +12,10 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: BETTER_AUTH_URL
-        sync: false
+        fromService:
+          name: whatsapp-receptionist-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: BETTER_AUTH_SECRET
         generateValue: true
       - key: INTERNAL_WORKER_SECRET
@@ -36,8 +39,14 @@ services:
       - key: NODE_VERSION
         value: 22
       - key: API_BASE_URL
-        sync: false
+        fromService:
+          name: whatsapp-receptionist-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       - key: INTERNAL_WORKER_SECRET
-        sync: false
+        fromService:
+          name: whatsapp-receptionist-api
+          type: web
+          envVarKey: INTERNAL_WORKER_SECRET
       - key: WORKER_INTERVAL_MS
         value: 30000
