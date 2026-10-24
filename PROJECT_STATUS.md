@@ -4,7 +4,7 @@
 **Overall:** PHASE 7 IN PROGRESS
 **Implementation progress:** 99% (local salon booking flow is end-to-end verified; Meta provisioning remains external)
 **Current phase:** Phase 7 — Meta onboarding, production configuration, billing, and release readiness
-**Next milestone:** Configure Meta credentials, register webhooks, validate approved template delivery, and complete deployment checks
+**Next milestone:** Complete the Render API redeploy, deploy the web app to Vercel, then configure Meta credentials and webhooks
 **Release:** None  
 **Customer interviews:** 0 completed  
 **Pilot businesses:** 0  
@@ -26,7 +26,7 @@ Explain each phase and major implementation slice in TypeScript/database-oriente
 | 4 | AI FAQ and intent extraction + human handoff | Complete locally; evaluation ongoing | Provider-independent intent provider recognizes booking, availability, hours, services, pricing, cancellation, rescheduling, greetings, and human-help requests; optional local Ollama/OpenAI-compatible adapter falls back to rules; low-confidence messages move to `HANDOFF`; cancellation and rescheduling require explicit `YES`; live hours come from PostgreSQL; FAQ keywords remain the first answer source |
 | 5 | Reminders, templates, consent, background jobs | Complete locally; production delivery pending | Confirmed appointments produce durable 24-hour reminder jobs; protected scheduling/processing endpoints queue due reminders; customer `STOP`/`START` and owner consent APIs control opt-out state; approved WhatsApp template metadata CRUD and dashboard visibility are available; Meta delivery remains external |
 | 6 | Pilot hardening, security, monitoring | In progress locally | PostgreSQL readiness check, liveness check, tenant-scoped audit logs, sensitive-action audit events, security response headers, configurable in-memory API rate limiting, request IDs, and protected local metrics are implemented; production-grade shared rate limiting and external monitoring remain |
-| 7 | Meta onboarding, billing and production release | In progress locally; external Meta setup pending | Protected production-readiness checklist and dedicated reminder/outbound worker added; Meta credentials and approved WhatsApp assets are still external prerequisites |
+| 7 | Meta onboarding, billing and production release | In progress; Render deployment underway | Neon is connected and the API Blueprint is created; the first API deploy exposed a shared-package build-order issue, fixed in commit `ad788d4`; Meta credentials and approved WhatsApp assets remain external prerequisites |
 | 8 | Sales, pilots, iteration and scale | Not started | — |
 
 ## Immediate next actions
@@ -59,6 +59,9 @@ Explain each phase and major implementation slice in TypeScript/database-oriente
 - [x] Add a dedicated TypeScript worker that processes reminders and outbound messages on a configurable interval.
 - [x] Add a deployment runbook covering API, web, worker, PostgreSQL, and Meta webhook release order.
 - [x] Add a free-tier Render Blueprint for the API and worker deployment.
+- [x] Push the repository to GitHub without `.env` or secret values.
+- [x] Enter the Neon `DATABASE_URL` into Render; leave Meta credentials blank until Meta onboarding is complete.
+- [ ] Verify the corrected Render API deployment and publish the web app to Vercel.
 - [x] Initialize Git, add the project files with secrets excluded, and create the initial commit.
 - [x] Provision a Neon PostgreSQL project and apply all 12 Prisma migrations.
 - [x] Seed the synthetic demo owner, salon, services, stylist, and working hours in Neon.
