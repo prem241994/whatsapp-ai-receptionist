@@ -1,0 +1,22 @@
+{
+  "name": "whatsapp-ai-receptionist",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "scripts": {
+    "build": "corepack pnpm --recursive --if-present build",
+    "db:generate": "corepack pnpm --filter @whatsapp-receptionist/db generate",
+    "dev": "corepack pnpm --parallel --filter @whatsapp-receptionist/web --filter @whatsapp-receptionist/api dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint apps packages",
+    "test": "corepack pnpm --recursive --if-present test",
+    "typecheck": "corepack pnpm --recursive --if-present typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "eslint": "^9.25.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.30.1"
+  }
+}

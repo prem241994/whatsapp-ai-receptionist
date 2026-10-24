@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: whatsapp-receptionist-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @whatsapp-receptionist/db generate && pnpm --filter @whatsapp-receptionist/api build
+    preDeployCommand: pnpm --filter @whatsapp-receptionist/db exec prisma migrate deploy
+    startCommand: node apps/api/dist/src/server.js
+    healthCheckPath: /health/live
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: INTERNAL_WORKER_SECRET
+        generateValue: true
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: META_PHONE_NUMBER_ID
+        sync: false
+
+  - type: worker
+    name: whatsapp-receptionist-worker
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @whatsapp-receptionist/worker build
+    startCommand: node apps/worker/dist/worker.js
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: API_BASE_URL
+        sync: false
+      - key: INTERNAL_WORKER_SECRET
+        sync: false
+      - key: WORKER_INTERVAL_MS
+        value: 30000

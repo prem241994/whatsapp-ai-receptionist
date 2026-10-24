@@ -1,0 +1,456 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BusinessStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum MembershipRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  OFFERED
+  PENDING_CONFIRMATION
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  NO_SHOW
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+}
+
+enum ConversationStatus {
+  OPEN
+  HANDOFF
+  CLOSED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  RECEIVED
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum ReminderJobStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum TemplateStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  DISABLED
+}
+
+model Business {
+  id          String         @id @default(uuid()) @db.Uuid
+  displayName String
+  locale      String         @default("en-IN")
+  timezone    String         @default("Asia/Kolkata")
+  status      BusinessStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  memberships         Membership[]
+  whatsappConnections WhatsAppConnection[]
+  webhookEvents       WebhookEvent[]
+  services            Service[]
+  staff               Staff[]
+  customers           Customer[]
+  conversations       Conversation[]
+  messages            Message[]
+  faqs                Faq[]
+  appointments        Appointment[]
+  reminderJobs        ReminderJob[]
+  messageTemplates    MessageTemplate[]
+  auditLogs           AuditLog[]
+
+  @@map("businesses")
+}
+
+model User {
+  id            String       @id
+  name          String
+  email         String       @unique
+  emailVerified Boolean      @default(false)
+  image         String?
+  displayName   String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  memberships   Membership[]
+  sessions      Session[]
+  accounts      Account[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("auth_verifications")
+}
+
+model Membership {
+  id         String         @id @default(uuid()) @db.Uuid
+  businessId String         @db.Uuid
+  userId     String
+  role       MembershipRole
+  createdAt  DateTime       @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Service {
+  id              String   @id @default(uuid()) @db.Uuid
+  businessId      String   @db.Uuid
+  name            String
+  durationMinutes Int
+  priceMinor      Int
+  bufferMinutes   Int      @default(0)
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  staffServices StaffService[]
+  appointments  Appointment[]
+
+  @@index([businessId, enabled])
+  @@map("services")
+}
+
+model Staff {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  name       String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  staffServices StaffService[]
+  workingHours  WorkingHour[]
+  timeOff       TimeOff[]
+  appointments  Appointment[]
+
+  @@index([businessId, enabled])
+  @@map("staff")
+}
+
+model StaffService {
+  staffId   String @db.Uuid
+  serviceId String @db.Uuid
+
+  staff   Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, serviceId])
+  @@map("staff_services")
+}
+
+model WorkingHour {
+  id        String @id @default(uuid()) @db.Uuid
+  staffId   String @db.Uuid
+  dayOfWeek Int
+  startTime String
+  endTime   String
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, dayOfWeek, startTime, endTime])
+  @@map("working_hours")
+}
+
+model TimeOff {
+  id       String   @id @default(uuid()) @db.Uuid
+  staffId  String   @db.Uuid
+  startsAt DateTime
+  endsAt   DateTime
+  reason   String?
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId, startsAt, endsAt])
+  @@map("time_off")
+}
+
+model Customer {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  phone       String
+  displayName String?
+  optedOut    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+  conversations Conversation[]
+  reminderJobs  ReminderJob[]
+
+  @@unique([businessId, phone])
+  @@map("customers")
+}
+
+model Conversation {
+  id                   String             @id @default(uuid()) @db.Uuid
+  businessId           String             @db.Uuid
+  customerId           String             @db.Uuid
+  status               ConversationStatus @default(OPEN)
+  pendingServiceId     String?            @db.Uuid
+  pendingStaffId       String?            @db.Uuid
+  pendingDate          String?
+  pendingStartsAt      DateTime?
+  pendingEndsAt        DateTime?
+  pendingAction        String?
+  pendingAppointmentId String?            @db.Uuid
+  lastMessageAt        DateTime           @default(now())
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([businessId, status, lastMessageAt])
+  @@index([customerId, status])
+  @@map("conversations")
+}
+
+model Message {
+  id                String           @id @default(uuid()) @db.Uuid
+  businessId        String           @db.Uuid
+  conversationId    String           @db.Uuid
+  providerMessageId String?          @unique
+  direction         MessageDirection
+  messageType       String
+  textBody          String?
+  status            MessageStatus    @default(RECEIVED)
+  createdAt         DateTime         @default(now())
+
+  business     Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Faq {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  question   String
+  answer     String
+  keywords   String[]
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, enabled])
+  @@map("faqs")
+}
+
+model Appointment {
+  id         String            @id @default(uuid()) @db.Uuid
+  businessId String            @db.Uuid
+  customerId String            @db.Uuid
+  serviceId  String            @db.Uuid
+  staffId    String            @db.Uuid
+  startsAt   DateTime
+  endsAt     DateTime
+  status     AppointmentStatus @default(REQUESTED)
+  source     String            @default("dashboard")
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  business         Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  service          Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  staff            Staff             @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  reminderJobs     ReminderJob[]
+  messageTemplates MessageTemplate[]
+
+  @@index([businessId, startsAt])
+  @@index([staffId, startsAt, endsAt])
+  @@map("appointments")
+}
+
+model ReminderJob {
+  id            String            @id @default(uuid()) @db.Uuid
+  businessId    String            @db.Uuid
+  appointmentId String            @db.Uuid
+  kind          String
+  scheduledFor  DateTime
+  status        ReminderJobStatus @default(PENDING)
+  attempts      Int               @default(0)
+  sentAt        DateTime?
+  lastError     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  customer    Customer?   @relation(fields: [customerId], references: [id])
+  customerId  String?     @db.Uuid
+
+  @@unique([appointmentId, kind])
+  @@index([businessId, status, scheduledFor])
+  @@map("reminder_jobs")
+}
+
+model MessageTemplate {
+  id                 String         @id @default(uuid()) @db.Uuid
+  businessId         String         @db.Uuid
+  name               String
+  language           String         @default("en_US")
+  category           String         @default("UTILITY")
+  bodyPreview        String
+  providerTemplateId String?
+  status             TemplateStatus @default(DRAFT)
+  enabled            Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  appointmentId String?      @db.Uuid
+
+  @@unique([businessId, name, language])
+  @@index([businessId, status, enabled])
+  @@map("message_templates")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String?  @db.Uuid
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  actor    User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+model WebhookEvent {
+  id              String             @id @default(uuid()) @db.Uuid
+  provider        String
+  providerEventId String             @unique
+  eventType       String
+  businessId      String?            @db.Uuid
+  phoneNumberId   String?
+  senderPhone     String?
+  messageType     String?
+  textBody        String?
+  payloadHash     String
+  status          WebhookEventStatus @default(RECEIVED)
+  receivedAt      DateTime           @default(now())
+  processedAt     DateTime?
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@index([provider, receivedAt])
+  @@index([businessId, receivedAt])
+  @@index([senderPhone, receivedAt])
+  @@map("webhook_events")
+}
+
+model WhatsAppConnection {
+  id                 String   @id @default(uuid()) @db.Uuid
+  businessId         String   @db.Uuid
+  phoneNumberId      String   @unique
+  displayPhoneNumber String?
+  enabled            Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, enabled])
+  @@map("whatsapp_connections")
+}

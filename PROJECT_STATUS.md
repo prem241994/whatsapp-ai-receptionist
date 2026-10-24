@@ -1,0 +1,177 @@
+# Project Status — WhatsApp AI Receptionist
+
+**Last updated:** 2026-10-24  
+**Overall:** PHASE 7 IN PROGRESS
+**Implementation progress:** 99% (local salon booking flow is end-to-end verified; Meta provisioning remains external)
+**Current phase:** Phase 7 — Meta onboarding, production configuration, billing, and release readiness
+**Next milestone:** Configure Meta credentials, register webhooks, validate approved template delivery, and complete deployment checks
+**Release:** None  
+**Customer interviews:** 0 completed  
+**Pilot businesses:** 0  
+**Paying customers:** 0
+
+> The project plan and documents exist. Documentation creation is not counted as application implementation. Progress percentages are estimates and must be evidence-based.
+
+## Collaboration preference
+
+Explain each phase and major implementation slice in TypeScript/database-oriented terms before work begins, then summarize what changed, why it matters, how it was verified, and update this file afterward.
+
+## Phase tracker
+| Phase | Deliverable | Status | Evidence |
+|---|---|---|---|
+| 0 | Foundation and repo/CI setup | Complete locally; external verification pending | Workspace scaffold, checks, lockfile, and CI workflow created; Git initialization remains blocked by workspace permissions |
+| 1 | Business domain, database, auth, tenant isolation | Complete locally | Authenticated salon setup, service/staff CRUD, working-hours controls, availability, and booking are implemented and locally verified |
+| 2 | Meta sandbox webhook and messaging | In progress locally; external setup pending | Webhook verification, signed inbound event parsing, durable event persistence, tenant phone-number routing, conversation/message processing, deterministic FAQ replies, outbound queue inspection, and protected delivery worker boundary added; Meta test-number provisioning is currently failing in Meta's dashboard, so local simulation remains available |
+| 3 | Booking engine and owner dashboard | In progress locally | Services, staff hours, availability, dashboard booking, deterministic WhatsApp booking flow, durable pending booking state, explicit slot selection, conflict protection, and YES-only appointment confirmation are implemented and locally verified |
+| 4 | AI FAQ and intent extraction + human handoff | Complete locally; evaluation ongoing | Provider-independent intent provider recognizes booking, availability, hours, services, pricing, cancellation, rescheduling, greetings, and human-help requests; optional local Ollama/OpenAI-compatible adapter falls back to rules; low-confidence messages move to `HANDOFF`; cancellation and rescheduling require explicit `YES`; live hours come from PostgreSQL; FAQ keywords remain the first answer source |
+| 5 | Reminders, templates, consent, background jobs | Complete locally; production delivery pending | Confirmed appointments produce durable 24-hour reminder jobs; protected scheduling/processing endpoints queue due reminders; customer `STOP`/`START` and owner consent APIs control opt-out state; approved WhatsApp template metadata CRUD and dashboard visibility are available; Meta delivery remains external |
+| 6 | Pilot hardening, security, monitoring | In progress locally | PostgreSQL readiness check, liveness check, tenant-scoped audit logs, sensitive-action audit events, security response headers, configurable in-memory API rate limiting, request IDs, and protected local metrics are implemented; production-grade shared rate limiting and external monitoring remain |
+| 7 | Meta onboarding, billing and production release | In progress locally; external Meta setup pending | Protected production-readiness checklist and dedicated reminder/outbound worker added; Meta credentials and approved WhatsApp assets are still external prerequisites |
+| 8 | Sales, pilots, iteration and scale | Not started | — |
+
+## Immediate next actions
+- [x] Use local Postgres.app development server, create `whatsapp_receptionist`, and apply the initial Prisma migration.
+- [x] Add provider-independent server-side membership and role authorization boundaries.
+- [x] Apply Better Auth schema migration to local PostgreSQL after confirming auth tables had no data.
+- [x] Fix database workspace runtime exports and launch local API and web app.
+- [x] Create synthetic local owner, demo salon, and membership; verify authenticated dashboard API access.
+- [x] Add working-hours schedule read/save API and dashboard controls.
+- [x] Add service/staff edit and delete controls in the dashboard.
+- [x] Add read-only appointment availability calculation from working hours, time off, and existing appointments.
+- [x] Add dashboard availability view with date, service, and staff filters.
+- [x] Add authenticated appointment creation with working-hours, time-off, and conflict validation.
+- [x] Add dashboard appointment creation form and upcoming appointment list.
+- [x] Record the current API inventory for manual checks; defer Playwright automation until core development is complete.
+- [x] Add Meta webhook verification and signed inbound event parsing boundary.
+- [x] Persist normalized inbound webhook events with provider-event deduplication.
+- [x] Add an outbound WhatsApp adapter interface without sending real messages.
+- [x] Add business-scoped WhatsApp phone-number mapping and route recognized inbound events to that business.
+- [x] Create open conversations and inbound messages for recognized webhook events.
+- [x] Add a tenant-scoped conversation read API.
+- [x] Add business-scoped FAQ configuration and deterministic queued replies for matching inbound text.
+- [x] Add dashboard FAQ management and outbound queue delivery-state APIs.
+- [x] Add protected outbound queue processor that uses the Meta adapter when credentials are configured.
+- [x] Add explicit cancellation and rescheduling confirmation flows with transactional appointment state changes.
+- [x] Add durable 24-hour appointment reminder jobs with opt-out protection and a protected processing endpoint.
+- [x] Add customer `STOP`/`START` consent handling and owner/manager consent and reminder-job APIs.
+- [x] Add Phase 6 readiness, audit logging, and API rate-limit foundations.
+- [x] Add a protected production-readiness checklist that reports missing configuration without exposing secrets.
+- [x] Add a dedicated TypeScript worker that processes reminders and outbound messages on a configurable interval.
+- [x] Add a deployment runbook covering API, web, worker, PostgreSQL, and Meta webhook release order.
+- [x] Add a free-tier Render Blueprint for the API and worker deployment.
+- [x] Provision a Neon PostgreSQL project and apply all 12 Prisma migrations.
+- [x] Seed the synthetic demo owner, salon, services, stylist, and working hours in Neon.
+- [ ] Schedule initial salon discovery interviews in parallel (human-led).
+
+## Decisions made
+- Initial vertical: salons/beauty parlours.
+- Future expansion intent: clinics/doctors and restaurants after salon validation; support them with vertical-specific booking/reservation rules.
+- Initial geography: Bengaluru.
+- Official Meta Cloud API, not unofficial WhatsApp Web automation.
+- TypeScript across frontend/backend.
+- Multi-tenant architecture; each salon authorizes its own WhatsApp assets.
+- AI for understanding; backend for authoritative booking logic.
+
+## Decisions pending
+- [ ] Product name/domain/branding.
+- [ ] Hosting vendor and data-region choices.
+- [x] Use self-hosted Better Auth with local PostgreSQL; avoid a managed auth subscription.
+- [ ] Meta Business portfolio/app setup and production onboarding eligibility.
+- [ ] AI provider/model after measured quality/cost evaluation.
+- [ ] Pilot niche specifics (unisex salon vs beauty parlour vs barber).
+- [ ] Actual WhatsApp message charges and pricing model at launch.
+- [ ] Legal/privacy and retention requirements with professional review as appropriate.
+
+## Blockers
+None for local scaffolding. Real Meta integration requires developer account and credentials; production onboarding requires business verification/permissions as applicable.
+
+## Session log
+| Date | Work completed | Validation | Next |
+|---|---|---|---|
+| 2026-10-22 | Created roadmap and Codex instruction documents | Documentation only | Begin Phase 0 |
+| 2026-10-22 | Added pnpm monorepo foundation with Next.js web app, Fastify API, shared TypeScript package, env example, ESLint/Prettier/TypeScript/Vitest tooling, and GitHub Actions workflow | `corepack pnpm format:check`, `lint`, `typecheck`, `test`, and `build` all passed; API health test passed; build artifacts emitted | Review scaffold; enable Git operations and run CI |
+| 2026-10-22 | Began Phase 1 with Prisma database package, core business/staff/service/customer/appointment schema, and tenant-scoped service repository | Prisma client generation and schema validation passed; full format/lint/typecheck/test/build suite passed; repository tests cover business scoping and empty-scope rejection | Connect PostgreSQL, create migration, add auth and membership authorization |
+| 2026-10-22 | Connected local Postgres.app, created `whatsapp_receptionist`, and applied the initial Prisma migration | Prisma migration succeeded; direct SQL confirmed `_prisma_migrations`, `businesses`, `memberships`, `services`, `staff`, `customers`, `appointments`, `working_hours`, `time_off`, `users`, and `staff_services` tables | Add auth/membership authorization, then CRUD |
+| 2026-10-22 | Added provider-independent membership lookup and role authorization boundaries | Full format/lint/typecheck/test/build suite passed; authorization tests cover valid roles, denied roles, missing membership, and incomplete scope | Choose auth provider, connect request identity, then add CRUD |
+| 2026-10-22 | Added membership-checked service/staff list and create API routes plus salon dashboard shell | Implementation recorded; checks not run during this slice | Connect login provider, complete update/delete and schedule endpoints, wire dashboard forms |
+| 2026-10-22 | Added membership-checked update and delete routes for services and staff | Checks not run during this slice; routes use business-scoped repository updates/deletes and manager/owner role checks | Choose/configure auth provider, add schedule endpoints, wire UI |
+| 2026-10-22 | Selected Supabase Auth as provider and wired API JWT verification with jose; added Supabase environment placeholders | Implementation recorded; real token verification requires configured Supabase URL/JWKS; checks not run | Configure project values, build sign-in UI, connect dashboard CRUD forms |
+| 2026-10-22 | Added Supabase email/password sign-in UI, membership-based salon selection endpoint, and service/staff dashboard loading and create controls | Checks not run; real sign-in requires Supabase URL/publishable key and API server; schedule management still pending | Configure credentials, validate live auth, implement schedule CRUD and edit/delete UI |
+| 2026-10-22 | Replaced Supabase browser auth with Better Auth email/password UI, added Better Auth Prisma models/configuration and Fastify handler/session lookup | `pnpm install`, Prisma schema validation, and Prisma client generation passed; migration not applied because Prisma requires an interactive migrate command after detecting users-table changes; confirmed local users/memberships tables currently contain zero rows | Create/review migration in an interactive environment, apply locally, then verify auth flow and update stale documentation |
+| 2026-10-22 | Added reviewed Better Auth migration and applied it to local PostgreSQL; corrected frontend session typing | Prisma migrate deploy succeeded; formatting, lint passed; typecheck initially found and then received a fix, final rerun pending | Run full checks and live sign-in verification |
+| 2026-10-22 | Finished Better Auth schema integration and frontend replacement; verified migration and full project checks | Confirmed `auth_accounts`, `auth_sessions`, and `auth_verifications` in PostgreSQL; `format:check`, `lint`, `typecheck`, `test`, and `build` all passed | Create local owner account and membership, then verify authenticated salon access |
+| 2026-10-22 | Attempted local owner verification | API startup failed because the database workspace package exports TypeScript source with `.js` imports that Node cannot resolve at runtime; no account or salon data created | Fix workspace package export/build boundary, then retry verification |
+| 2026-10-22 | Changed database package exports to built JavaScript and declarations; started local API and Next.js dashboard | API build passed; `/health` returned ok; unauthenticated Better Auth session endpoint returned null; dashboard returned HTML at port 3000 | User to inspect frontend; then create demo account and salon membership |
+| 2026-10-23 | Created synthetic local owner account and `Demo Salon Bengaluru`, attached OWNER membership, and verified authenticated business listing | Better Auth signup returned a session; direct SQL inserted the local business/membership; authenticated `GET /v1/me/businesses` returned the demo salon with `OWNER` role | Add schedule management and dashboard editing controls |
+| 2026-10-23 | Added business-scoped working-hours GET/PUT routes and dashboard schedule editor; added synthetic `Demo Stylist` with Monday/Tuesday 10:00–19:00 hours | Format, lint, typecheck, and build passed; authenticated schedule PUT returned saved rows | Add service/staff edit/delete controls, then availability logic |
+| 2026-10-23 | Added dashboard edit/delete controls for services and staff, including confirmation before deletion and reload of the selected salon data | Format, lint, typecheck, and build passed; no test suite run for this UI-only slice | Begin appointment availability logic |
+| 2026-10-23 | Added authenticated `GET /v1/businesses/:businessId/availability` API; it calculates 30-minute slots using salon timezone, service duration, staff hours, time off, and blocking appointment statuses | Format, lint, typecheck, and build passed; no schema migration required | Add dashboard availability view, then appointment creation with conflict protection |
+| 2026-10-23 | Fixed local API development startup so Node loads the root `.env` and Prisma can connect during Better Auth requests | Demo sign-in with `owner@local.test` returned HTTP 200; authenticated session and OWNER salon membership were confirmed | Continue with dashboard availability view |
+| 2026-10-23 | Added dashboard availability preview with date, service, and staff filters; added API inventory/Playwright coverage as a delivery requirement | Format, lint, typecheck, and build passed; web build includes the availability UI | Add appointment creation with server-side conflict protection, then document all APIs for Playwright |
+| 2026-10-23 | Added authenticated `POST /v1/businesses/:businessId/appointments`; it upserts the customer, validates salon hours/time off, and creates a confirmed appointment transactionally with overlap protection | Format, lint, typecheck, and build passed; unauthenticated smoke request returned `401` | Add dashboard appointment creation form and list, then document APIs for Playwright |
+| 2026-10-23 | Added tenant-scoped appointment list API and dashboard booking form; selected availability slots can now be booked with customer name/phone and appear in the upcoming list | Format, lint, typecheck, and build passed; authenticated appointment list returned HTTP 200 with the demo account | Document all APIs and add Playwright E2E coverage |
+| 2026-10-23 | Recorded the current API surface in `API_INVENTORY.md`; Playwright automation intentionally deferred | Endpoint paths, methods, authentication expectations, request bodies, query parameters, and common errors documented | Continue product development; automate the documented API workflows later |
+| 2026-10-23 | Added `GET /webhooks/meta` verification and signed `POST /webhooks/meta` inbound event boundary; added Meta secret placeholders to `.env.example` | Format, lint, typecheck, and build passed; wrong verification token returned `403`; unconfigured POST returned `503` | Configure Meta sandbox credentials when available, then add event persistence and outbound messaging adapter |
+| 2026-10-23 | Added `webhook_events` Prisma model/migration with duplicate provider-event protection and a Meta outbound text adapter interface | Migration applied locally; Prisma confirmed `webhook_events`; format, lint, typecheck, and build passed | Add business routing, message processing, and sandbox send/receive verification when Meta credentials are available |
+| 2026-10-23 | Added `whatsapp_connections` and tenant-scoped connection GET/PUT APIs; inbound Meta events now map `metadata.phone_number_id` to a business and upsert that sender as a customer | Routing migration applied; authenticated demo connection list returned HTTP 200; format, lint, typecheck, and build passed | Add conversation/message processing and sandbox send/receive verification when Meta credentials are available |
+| 2026-10-23 | Repaired blank frontend caused by a corrupted generated Next.js development cache | Cleared only `apps/web/.next`, restarted the web server, and confirmed web/API responses return HTTP 200 | Continue Meta conversation/message processing |
+| 2026-10-23 | Added `conversations` and `messages` models/migration; recognized inbound events now create or reuse an open conversation and persist one inbound message; added conversation read API | Migration applied; authenticated conversations API returned HTTP 200; format, lint, typecheck, and build passed | Add salon FAQ/receptionist message processing and outbound reply queue |
+| 2026-10-23 | Added `faqs` table and FAQ list/create APIs; matching inbound text now queues an outbound answer in the same conversation; excluded `.next-dev` from project format/lint scans | FAQ migration applied; authenticated FAQ API returned HTTP 200; format, lint, typecheck, and build passed | Add dashboard FAQ management and outbound queue delivery state |
+| 2026-10-23 | Added FAQ edit/delete APIs and dashboard management controls; added queued outbound message listing and local delivery-state update APIs | Authenticated FAQ and outbound queue APIs returned HTTP 200; format, lint, typecheck, and build passed | Connect outbound queue worker to Meta adapter when sandbox credentials are available |
+| 2026-10-23 | Added protected internal outbound worker trigger; queued messages now have a delivery path through the Meta adapter with `SENT`/`FAILED` updates | Format, lint, typecheck, and build passed; worker correctly returned `503 worker_not_configured` without a configured internal secret; no real messages sent | Add Meta sandbox credentials when available, then verify signed receive and approved test-recipient send |
+| 2026-10-23 | Fixed recurring frontend corruption by isolating Next.js development output in `.next-dev` while production builds use `.next` | Restarted web server; development page and production build both returned HTTP 200 after the change | Continue Meta conversation/message processing |
+| 2026-10-23 | Attempted Meta WhatsApp sandbox onboarding; the app and WhatsApp API use case were created, but Meta repeatedly failed while claiming the free test number | Meta displayed `An error occurred while creating the test account`; no credentials or real messages were created | Pause repeated Meta retries; continue credential-free local conversation/outbound-flow development and revisit Meta provisioning later |
+| 2026-10-23 | Added a development-only authenticated WhatsApp simulator endpoint for inbound text messages | Local simulation now creates/reuses conversations, persists inbound messages, and queues matching FAQ replies without Meta credentials; Meta provisioning remains external | Use the simulator to validate the dashboard conversation and outbound queue flow before returning to Meta setup |
+| 2026-10-23 | Smoke-checked the local WhatsApp simulator with the demo salon account | `POST /v1/businesses/:businessId/dev/simulate-whatsapp` returned `201`; conversation read-back returned the simulated inbound message; format, lint, typecheck, and build passed | Add a visible conversation/inbox section to the dashboard and use the simulator while Meta remains unavailable |
+| 2026-10-23 | Added the first dashboard inbox view for tenant conversations | Web app now loads conversations, displays customer/message history, shows inbound/outbound status, and supports refresh; frontend returned HTTP 200; format, lint, typecheck, and build passed | Improve inbox actions and add a local “simulate message” control for easier UI demonstrations |
+| 2026-10-23 | Added a development-only inbox message simulator control | Dashboard can submit a test phone/message to the local simulator endpoint and refresh the conversation list; no Meta request is made | Use the simulator to validate FAQ replies and conversation history before adding human handoff actions |
+| 2026-10-23 | Added queued automatic-reply controls to the inbox | Dashboard loads the outbound queue and lets an owner/manager mark queued replies `SENT` or `FAILED`; format, lint, typecheck, and build passed | Add explicit human handoff/pause controls after the local reply workflow is validated |
+| 2026-10-23 | Added conversation human handoff and resume controls | Owner/manager APIs now switch conversations between `OPEN` and `HANDOFF`; automatic FAQ replies are suppressed during handoff; dashboard buttons are available; API inventory updated | Validate handoff behavior with simulated messages before adding manual staff replies |
+| 2026-10-23 | Smoke-checked handoff lifecycle with the demo conversation | Handoff returned `HANDOFF`; resume returned `OPEN`; no real Meta messages were sent | Add manual staff reply composition and persist staff-authored outbound messages |
+| 2026-10-23 | Added manual staff replies for handed-off conversations | Owner/manager can queue outbound text replies from the inbox; replies appear in conversation history and outbound queue; API inventory updated | Add real Meta delivery after sandbox credentials are available |
+| 2026-10-23 | Smoke-checked manual reply flow with the demo conversation | Handoff returned `HANDOFF`; staff reply returned `201` with a queued outbound message; all format, lint, typecheck, and build checks passed | Connect queued staff replies to Meta delivery when credentials are available |
+| 2026-10-23 | Added the first deterministic salon booking conversation step | Booking-intent messages now queue a service-list prompt with duration and price; no appointment is created until the customer’s service/date/time are explicitly captured and validated | Add stateful service selection and availability offers |
+| 2026-10-23 | Smoke-checked booking intent with a fresh simulated customer | Booking request created an open conversation and queued a safe setup response; no appointment was created; demo salon currently has no services configured, so the fallback response was shown | Add demo services, then implement stateful service selection and availability offers |
+| 2026-10-23 | Added demo services and deterministic service selection | Demo salon now has Haircut and Hair Coloring; a simulated `I want to book` followed by `Haircut` queued a date prompt; no appointment was created; all checks passed | Parse the requested date, load availability, and offer valid time slots |
+| 2026-10-23 | Added date parsing and availability offers to the booking conversation | A simulated `2026-10-26` returned valid 30-minute Haircut slots for Demo Stylist based on working hours and appointment conflicts; no appointment was created | Add explicit slot selection and final appointment confirmation |
+| 2026-10-24 | Started Phase 7 with a protected production-readiness checklist for database, Better Auth, worker, and Meta configuration | Endpoint returns boolean checks and missing configuration names only; local Meta checks intentionally remain false until real Meta credentials are configured | Configure Meta production credentials, register webhook settings, validate template delivery, and prepare deployment |
+| 2026-10-24 | Added a dedicated worker process for scheduled reminders and outbound queue delivery | Worker builds with the monorepo and uses the protected internal API endpoints with graceful SIGINT/SIGTERM shutdown | Run the worker locally, then deploy it as a separate long-running process or scheduled service |
+| 2026-10-24 | Added the deployment runbook and release-order checklist | Documents required production secrets, migration order, health checks, worker deployment, webhook registration, and operational safeguards | Configure the target hosting provider, then supply Meta production credentials |
+| 2026-10-24 | Added a free-tier Render Blueprint for the API and worker | Blueprint defines builds, migration execution, health checks, generated secrets, and shared worker configuration; no paid plan is selected | Create the Render Blueprint and connect a free PostgreSQL provider when ready |
+| 2026-10-24 | Connected the local application to Neon PostgreSQL and applied all migrations | Neon database reports 22 public tables and 12 completed Prisma migrations; `/health/ready` returned `database: ok` after restarting the API | Deploy the API and worker, then configure Meta credentials and webhook registration |
+| 2026-10-24 | Recreated the synthetic demo account and salon configuration in Neon | Better Auth signup succeeded; authenticated `GET /v1/me/businesses` returned the OWNER salon and the services API returned Haircut and Hair Coloring | Deploy the API and worker, then configure Meta credentials and webhook registration |
+| 2026-10-23 | Added durable booking state, explicit time selection, and final confirmation | Local simulator smoke test completed `I want to book` → `Haircut` → `2026-10-27` → `10:00 am` → `YES`; exactly one `CONFIRMED` Haircut appointment was created for Demo Stylist; format, lint, typecheck, and build passed | Add the first AI-assisted intent/FAQ layer; keep appointment creation behind the deterministic confirmation and conflict checks |
+| 2026-10-23 | Added provider-independent first-pass intent classification and FAQ fallbacks | Shared TypeScript classifier recognizes booking, hours, services, pricing, and human-help phrases; FAQ answers still take priority; unit tests added; no external AI provider or secret required | Add business-hours response formatting and later plug an LLM behind the same intent contract |
+| 2026-10-23 | Smoke-checked natural-language intent replies | Local simulator returned service names for `What services do you offer?`, prices for `How much is hair coloring?`, and a human-help instruction for `I need to speak to a person`; no appointment was created | Add business-hours response formatting, then define an optional LLM adapter boundary |
+| 2026-10-23 | Added live business-hours replies and an intent-provider boundary | Hours responses now read staff working hours from PostgreSQL; shared `IntentProvider`/`IntentResult` types allow a future LLM adapter; unit, format, lint, typecheck, and build checks passed | Add an optional LLM implementation and confidence/hand-off policy without allowing it to bypass booking validation |
+| 2026-10-23 | Smoke-checked the business-hours intent | `What time do you open?` returned Monday and Tuesday 10:00–19:00 for Demo Stylist from the local database; no appointment or external message was created | Add an optional LLM implementation behind the shared provider interface |
+| 2026-10-23 | Added low-confidence human handoff policy | API now uses the shared `IntentProvider`; unknown messages with no FAQ match change the conversation to `HANDOFF` and queue a staff-takeover notice; active booking steps and FAQ matches are unaffected | Add an optional LLM provider implementation and confidence policy configuration |
+| 2026-10-23 | Smoke-checked low-confidence routing | An ambiguous simulated message changed the conversation to `HANDOFF` and queued the staff-takeover notice; all format, lint, typecheck, unit-test, and build checks passed | Add an optional LLM provider implementation behind the existing interface |
+| 2026-10-23 | Added optional local LLM intent adapter | `INTENT_PROVIDER=rules` remains the default; setting `INTENT_PROVIDER=ollama` calls an OpenAI-compatible local endpoint and safely falls back to rules on timeout, invalid JSON, or provider errors; no API key is required for local Ollama | Decide whether to run Ollama locally, then tune confidence thresholds with real salon conversations |
+| 2026-10-23 | Smoke-checked adapter wiring with default configuration | With `INTENT_PROVIDER=rules`, an ambiguous simulated message still changed the conversation to `HANDOFF`; no LLM call or external service was required | Optionally install/run Ollama and configure `INTENT_PROVIDER=ollama` for local model evaluation |
+| 2026-10-23 | Connected the local Ollama installation for development | `.env` now uses `INTENT_PROVIDER=ollama` with installed `qwen3.5:4b`; added a five-second timeout and moved classification outside database transactions; live hours request returned HTTP 201 and the correct reply without a transaction timeout | Evaluate paraphrased salon requests with the local model and keep rules fallback enabled |
+| 2026-10-23 | Smoke-checked a paraphrased booking request with Ollama enabled | `Could I get a trim sometime?` completed with HTTP 201; the conversation safely moved to `HANDOFF` rather than creating an appointment because the intent was not confidently actionable | Tune the local model prompt/response handling if stronger paraphrase recognition is needed |
+| 2026-10-23 | Improved local LLM prompt and response parsing | Added salon-specific examples, support for Ollama reasoning/fenced JSON output, invalid-response rejection, and parser unit tests; rules fallback and booking safety remain unchanged | Re-test the paraphrased booking request with the improved prompt |
+| 2026-10-23 | Added deterministic salon booking fallback for uncertain LLM results | Pricing phrases are prioritized, common trim/haircut booking phrasing is recognized locally, and an LLM `UNKNOWN` result falls back to a positive rule match; this keeps paraphrased bookings usable without trusting arbitrary model output | Re-test the trim phrase, then continue with conversation-level intent evaluation |
+| 2026-10-23 | Re-tested the improved trim paraphrase | `Could I get a trim sometime?` now returned the salon service-list booking prompt with conversation status `OPEN`; no appointment was created before service/date/time/YES confirmation | Continue with broader intent examples and conversation-level evaluation |
+| 2026-10-23 | Added common receptionist intents | Added greeting and availability responses; cancellation and rescheduling requests now move to `HANDOFF` with a safe staff message instead of mutating appointments; shared classifier and Ollama prompt now cover these intents | Add explicit cancellation/rescheduling confirmation state before allowing those actions |
+| 2026-10-23 | Smoke-checked common receptionist intents | Availability returned a service/date question; greeting returned a welcome reply; cancellation changed the conversation to `HANDOFF`; no appointment was modified | Implement explicit cancellation/rescheduling confirmation state |
+| 2026-10-23 | Added explicit cancellation confirmation state | Customer cancellation requests identify the next upcoming appointment, persist a pending cancellation action, require `YES`, then transactionally update the appointment to `CANCELLED`; configured business timezone is used in the summary | Implement the equivalent rescheduling state and confirmation flow |
+| 2026-10-23 | Smoke-checked cancellation end to end | Existing demo Haircut appointment produced a cancellation summary, remained unchanged before confirmation, then became `CANCELLED` only after `YES`; all checks passed | Implement rescheduling with the same pending-action safety pattern |
+| 2026-10-23 | Added explicit rescheduling confirmation state | Customer rescheduling requests identify the next upcoming appointment, persist the old appointment and requested service, offer new availability, require `YES`, then transactionally cancel the old appointment and create a confirmed replacement | Local simulator verified the full reschedule flow; old appointment became `CANCELLED`, replacement became `CONFIRMED`; continue with reminders, templates, consent, and jobs |
+| 2026-10-23 | Completed Phase 5 reminder, consent, template, and dashboard foundations | Added `reminder_jobs`, 24-hour scheduling for confirmed non-opted-out appointments, a protected reminder worker endpoint, queued reminder messages that reuse the outbound delivery path, customer `STOP`/`START` handling, consent/reminder-job APIs, approved-template metadata CRUD, and dashboard reminder/template visibility | Prisma migrations applied; format, lint, typecheck, unit tests, build, reminder-worker smoke check, STOP/START simulator check, and template API smoke check passed; begin Phase 6 hardening |
+| 2026-10-24 | Began Phase 6 operational hardening | Added PostgreSQL-backed `/health/ready`, tenant-scoped `audit_logs`, audit events for appointment creation and consent changes, audit read API, and per-IP/per-path rate limiting with explicit `429` responses | Prisma audit migration applied; format, lint, typecheck, unit tests, production build, and `/health/ready` smoke check passed; production should replace the in-memory limiter with a shared edge/Redis limiter |
+| 2026-10-24 | Expanded Phase 6 security and audit coverage | Added configurable rate-limit thresholds, security response headers, and audit events for handoff, resume, manual replies, and template creation/updates | Format, lint, typecheck, unit tests, production build, readiness, security-header, and unauthorized-audit smoke checks passed; continue with shared production rate limiting and external monitoring integration |
+| 2026-10-24 | Added local observability foundations | Added request correlation IDs, liveness/readiness separation, response counters, average-duration metrics, and worker-secret-protected metrics access | Format, lint, typecheck, unit tests, production build, liveness, request-ID/security-header, metrics authorization, and metrics collection smoke checks passed; production should export metrics to a shared monitoring system |
+
+## Update template for Codex
+```
+Date:
+Phase/task:
+Files changed:
+Tests/commands executed and results:
+Acceptance criteria verified:
+Security/privacy impact:
+Decisions/blockers:
+Next 3 actions:
+```

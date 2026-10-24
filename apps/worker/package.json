@@ -1,0 +1,15 @@
+{
+  "name": "@whatsapp-receptionist/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=../../.env --import tsx src/worker.ts",
+    "build": "tsc --outDir dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
