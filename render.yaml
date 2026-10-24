@@ -3,8 +3,7 @@ services:
     name: whatsapp-receptionist-api
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @whatsapp-receptionist/db generate && pnpm --filter @whatsapp-receptionist/api build
-    preDeployCommand: pnpm --filter @whatsapp-receptionist/db exec prisma migrate deploy
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @whatsapp-receptionist/db generate && pnpm --filter @whatsapp-receptionist/db exec prisma migrate deploy && pnpm --filter @whatsapp-receptionist/api build
     startCommand: node apps/api/dist/src/server.js
     healthCheckPath: /health/live
     envVars:

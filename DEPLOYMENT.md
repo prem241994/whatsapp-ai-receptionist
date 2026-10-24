@@ -44,7 +44,7 @@ WORKER_INTERVAL_MS=30000
 
 ## Release order
 
-1. Provision PostgreSQL and run `corepack pnpm --filter @whatsapp-receptionist/db exec prisma migrate deploy`.
+1. Provision PostgreSQL. The Render API build runs `prisma migrate deploy` before compiling the API because the free Render tier does not support a separate pre-deploy command.
 2. Deploy the API and confirm `/health/live` returns `200`.
 3. Confirm `/health/ready` returns `200` and the protected production-readiness endpoint reports `ready: true`.
 4. Deploy the web app with its API base URL and Better Auth URL.
