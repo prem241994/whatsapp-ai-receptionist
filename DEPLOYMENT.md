@@ -28,6 +28,7 @@ values to the repository.
 DATABASE_URL
 BETTER_AUTH_URL
 BETTER_AUTH_SECRET
+AUTH_TRUSTED_ORIGINS
 INTERNAL_WORKER_SECRET
 META_ACCESS_TOKEN
 META_APP_SECRET
@@ -69,7 +70,8 @@ the free Render Blueprint.
 2. Keep the framework preset as Next.js.
 3. Set `NEXT_PUBLIC_API_URL` to the public API URL, for example `https://whatsapp-receptionist-api.onrender.com`.
 4. Deploy the project and open the generated HTTPS URL.
-5. Set `BETTER_AUTH_URL` in the API service to that Vercel URL so Better Auth callbacks and cookies use the production origin.
+5. Keep `BETTER_AUTH_URL` pointed at the API's public Render URL, which is the canonical Better Auth server origin.
+6. Set `AUTH_TRUSTED_ORIGINS` in Render to the deployed Vercel origin. Production Better Auth cookies use `SameSite=None; Secure` because the web and API are hosted on different domains.
 
 There is intentionally no `vercel.json`: Vercel detects the Next.js app from
 the `apps/web` project root and uses the standard Next.js build command.

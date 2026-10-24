@@ -18,6 +18,8 @@ services:
           envVarKey: RENDER_EXTERNAL_URL
       - key: BETTER_AUTH_SECRET
         generateValue: true
+      - key: AUTH_TRUSTED_ORIGINS
+        sync: false
       - key: INTERNAL_WORKER_SECRET
         generateValue: true
       - key: EMBEDDED_WORKER_ENABLED
