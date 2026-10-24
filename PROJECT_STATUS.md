@@ -19,7 +19,7 @@ Explain each phase and major implementation slice in TypeScript/database-oriente
 ## Phase tracker
 | Phase | Deliverable | Status | Evidence |
 |---|---|---|---|
-| 0 | Foundation and repo/CI setup | Complete locally; external verification pending | Workspace scaffold, checks, lockfile, and CI workflow created; Git initialization remains blocked by workspace permissions |
+| 0 | Foundation and repo/CI setup | Complete locally; remote repository pending | Workspace scaffold, checks, lockfile, CI workflow, Git repository, and initial commit created; GitHub remote still needs to be connected |
 | 1 | Business domain, database, auth, tenant isolation | Complete locally | Authenticated salon setup, service/staff CRUD, working-hours controls, availability, and booking are implemented and locally verified |
 | 2 | Meta sandbox webhook and messaging | In progress locally; external setup pending | Webhook verification, signed inbound event parsing, durable event persistence, tenant phone-number routing, conversation/message processing, deterministic FAQ replies, outbound queue inspection, and protected delivery worker boundary added; Meta test-number provisioning is currently failing in Meta's dashboard, so local simulation remains available |
 | 3 | Booking engine and owner dashboard | In progress locally | Services, staff hours, availability, dashboard booking, deterministic WhatsApp booking flow, durable pending booking state, explicit slot selection, conflict protection, and YES-only appointment confirmation are implemented and locally verified |
@@ -59,6 +59,7 @@ Explain each phase and major implementation slice in TypeScript/database-oriente
 - [x] Add a dedicated TypeScript worker that processes reminders and outbound messages on a configurable interval.
 - [x] Add a deployment runbook covering API, web, worker, PostgreSQL, and Meta webhook release order.
 - [x] Add a free-tier Render Blueprint for the API and worker deployment.
+- [x] Initialize Git, add the project files with secrets excluded, and create the initial commit.
 - [x] Provision a Neon PostgreSQL project and apply all 12 Prisma migrations.
 - [x] Seed the synthetic demo owner, salon, services, stylist, and working hours in Neon.
 - [ ] Schedule initial salon discovery interviews in parallel (human-led).
@@ -140,6 +141,7 @@ None for local scaffolding. Real Meta integration requires developer account and
 | 2026-10-24 | Added a free-tier Render Blueprint for the API and worker | Blueprint defines builds, migration execution, health checks, generated secrets, and shared worker configuration; no paid plan is selected | Create the Render Blueprint and connect a free PostgreSQL provider when ready |
 | 2026-10-24 | Connected the local application to Neon PostgreSQL and applied all migrations | Neon database reports 22 public tables and 12 completed Prisma migrations; `/health/ready` returned `database: ok` after restarting the API | Deploy the API and worker, then configure Meta credentials and webhook registration |
 | 2026-10-24 | Recreated the synthetic demo account and salon configuration in Neon | Better Auth signup succeeded; authenticated `GET /v1/me/businesses` returned the OWNER salon and the services API returned Haircut and Hair Coloring | Deploy the API and worker, then configure Meta credentials and webhook registration |
+| 2026-10-24 | Initialized the local Git repository and created the first commit | `.env`, generated build output, and local caches are ignored; commit `8dbc263` contains the application and deployment configuration | Create/connect a GitHub remote, push `main`, then use the repository for Render and Vercel deployment |
 | 2026-10-23 | Added durable booking state, explicit time selection, and final confirmation | Local simulator smoke test completed `I want to book` → `Haircut` → `2026-10-27` → `10:00 am` → `YES`; exactly one `CONFIRMED` Haircut appointment was created for Demo Stylist; format, lint, typecheck, and build passed | Add the first AI-assisted intent/FAQ layer; keep appointment creation behind the deterministic confirmation and conflict checks |
 | 2026-10-23 | Added provider-independent first-pass intent classification and FAQ fallbacks | Shared TypeScript classifier recognizes booking, hours, services, pricing, and human-help phrases; FAQ answers still take priority; unit tests added; no external AI provider or secret required | Add business-hours response formatting and later plug an LLM behind the same intent contract |
 | 2026-10-23 | Smoke-checked natural-language intent replies | Local simulator returned service names for `What services do you offer?`, prices for `How much is hair coloring?`, and a human-help instruction for `I need to speak to a person`; no appointment was created | Add business-hours response formatting, then define an optional LLM adapter boundary |
